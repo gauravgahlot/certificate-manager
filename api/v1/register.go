@@ -10,7 +10,7 @@ import (
 
 var (
 	// SchemeGroupVersion defines the "group" and "version",
-	// to uniquely identifiy the API.
+	// to uniquely identify the API.
 	SchemeGroupVersion = schema.GroupVersion{
 		Group:   "certs.k8c.io",
 		Version: "v1",

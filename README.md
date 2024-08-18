@@ -13,6 +13,7 @@ certificate-manager are **self-signed**.
 
 ## References
 
-- https://github.com/kubernetes-sigs/controller-runtime
 - https://github.com/kubernetes-sigs/controller-runtime/blob/main/examples/crd/
+- https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md
+- https://book.kubebuilder.io/reference/markers/crd-validation
 - https://pkg.go.dev/crypto/x509
