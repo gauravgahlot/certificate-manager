@@ -23,6 +23,7 @@ type CertificateReconciler struct {
 //+kubebuilder:rbac:groups=certs.k8c.io,resources=certificates,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=certs.k8c.io,resources=certificates/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=certs.k8c.io,resources=certificates/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=secrets,verbs=get;watch;create;delete;list;update;patch
 
 func (r *CertificateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (reconcile.Result, error) {
 	var (
