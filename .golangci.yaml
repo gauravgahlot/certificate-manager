@@ -1,0 +1,173 @@
+# An example golangci config can be found here: https://golangci-lint.run/usage/configuration/
+# For any changes required to the config file, check the example config for default values and references
+
+# Options for analysis running
+run:
+  # enables skipping of directories: vendor$, third_party$, testdata$, examples$, Godeps$, builtin$
+  modules-download-mode: readonly
+  timeout: 10m
+
+output:
+  formats:
+    - format: colored-line-number
+    - format: checkstyle
+      path: golangci-lint.out
+
+# Settings of specific linters
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  errorlint:
+    # Check whether fmt.Errorf uses the %w verb for formatting errors
+    errorf: true
+    # Check for plain type assertions and type switches
+    asserts: true
+    # Check for plain error comparisons
+    comparison: true
+
+  exhaustive:
+    # check switch statements in generated files also
+    check-generated: true
+
+  funlen:
+    lines: 60
+    statements: 40
+
+  gofmt:
+    # simplify code: gofmt with `-s` option, true by default
+    simplify: true
+
+  godot:
+    # comments to be checked: `declarations`, `toplevel`, or `all`
+    scope: all
+    # check that each sentence starts with a capital letter
+    capital: true
+
+  godox:
+    # report any comments starting with keywords
+    keywords:
+      - TODO
+      - BUG
+      - FIXME
+      - OPTIMIZE
+      - HACK
+
+  gosimple:
+    checks: ["all"]
+
+  govet:
+    enable-all: true
+
+  importas:
+    # if set to `true`, force to use alias.
+    no-unaliased: true
+
+  misspell:
+    locale: US
+
+  nolintlint:
+    # Enable to ensure that nolint directives are all used. Default is true.
+    allow-unused: false
+    # Enable to require an explanation of nonzero length after each nolint directive. Default is false.
+    require-explanation: true
+    # Enable to require nolint directives to mention the specific linter being suppressed. Default is false.
+    require-specific: true
+
+  staticcheck:
+    checks: ["all"]
+
+  stylecheck:
+    # https://staticcheck.io/docs/options#checks
+    checks: ["all"]
+    # https://staticcheck.io/docs/options#initialisms
+    initialisms:
+      [
+        "SDK",
+        "API",
+        "ASCII",
+        "EOF",
+        "HTTPS",
+        "ID",
+        "JSON",
+        "RPC",
+        "SLA",
+        "SSH",
+        "TLS",
+        "UI",
+        "UID",
+        "UUID",
+        "URI",
+        "URL",
+        "UTF8",
+      ]
+
+  whitespace:
+    multi-if: true # Enforces newlines (or comments) after every multi-line if statement
+    multi-func: true # Enforces newlines (or comments) after every multi-line function signature
+
+# All enabled and disabled linters
+linters:
+  disable-all: true
+  fast: false
+  enable:
+    - asciicheck
+    - bodyclose
+    - cyclop
+    - dogsled
+    - durationcheck
+    - err113
+    - errcheck
+    - errorlint
+    - exhaustive
+    - exportloopref
+    - forcetypeassert
+    - funlen
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - goheader
+    - goimports
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - importas
+    - ineffassign
+    - lll
+    - makezero
+    - misspell
+    - mnd
+    - nakedret
+    - nestif
+    - nilerr
+    - nlreturn
+    - noctx
+    - paralleltest
+    - prealloc
+    - predeclared
+    - rowserrcheck
+    - staticcheck
+    - stylecheck
+    - testpackage
+    - thelper
+    - tparallel
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - wastedassign
+    - whitespace
+
+# Config for issues raised by the linter
+issues:
+  max-same-issues: 1
+  new: false
+  fix: false
+
+# Set the default severity for issues
+severity:
+  default-severity: error
