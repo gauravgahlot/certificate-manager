@@ -49,6 +49,16 @@ docker-push: ## Push docker image with the manager.
 	# docker push ${IMG}
 	kind load docker-image ${IMG}
 
+##@ Deploy
+
+.PHONY: install
+install: manifests ## Install generated manifests (from config/) to the cluster.
+	kubectl apply -f config/
+
+.PHONY: uninstall
+uninstall: ## Uninstall applied manifests from the cluster.
+	kubectl delete -f config/
+
 ##@ Dependencies
 
 ## Location to install dependencies to

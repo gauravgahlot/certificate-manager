@@ -4,6 +4,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	StateValid      State = "Valid"
+	StateExpired    State = "Expired"
+	StateInProgress State = "InProgress"
+)
+
 // CertificateSpec defines the desired state of the Certificate.
 type CertificateSpec struct {
 	// Name of the organization.
@@ -33,8 +39,14 @@ type SecretRef struct {
 	Name string `json:"name"`
 }
 
+type State string
+
 // CertificateStatus defines the observed state of the certificate.
-type CertificateStatus struct{}
+type CertificateStatus struct {
+	// State of the Certificate.
+	// +kubebuilder:validation:Enum=Valid;Expired;InProgress
+	State State `json:"state"`
+}
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
