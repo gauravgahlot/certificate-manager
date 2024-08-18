@@ -57,8 +57,3 @@ type CertificateList struct {
 
 	Items []Certificate `json:"items"`
 }
-
-// Register types to the scheme builder, so they can be added to the scheme.
-func init() {
-	SchemeBuilder.Register(&Certificate{}, &CertificateList{})
-}
