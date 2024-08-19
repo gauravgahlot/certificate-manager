@@ -3,10 +3,14 @@ package controller
 import (
 	"context"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	certsv1 "certificate-manager/api/v1"
@@ -29,9 +33,10 @@ func (r *CertificateReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	var (
 		err error
 
-		logger = log.FromContext(ctx)
-		crt    = &certsv1.Certificate{}
-		result = ctrl.Result{}
+		logger  = log.FromContext(ctx)
+		crt     = &certsv1.Certificate{}
+		result  = ctrl.Result{}
+		handler = newRequestHandler(logger, r.Client, r.CA)
 	)
 
 	logger.Info("reconciling certificate resources")
@@ -45,7 +50,21 @@ func (r *CertificateReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return result, err
 	}
 
-	logger.Info("certificate resource", "name", crt.ObjectMeta.Name)
+	reconcileAfterDuration, err := handler.updateStatusIfNeeded(ctx, crt)
+	if reconcileAfterDuration > 0 {
+		logger.Info("reconcile after", "duration", reconcileAfterDuration, "name", req.NamespacedName)
+
+		result.RequeueAfter = reconcileAfterDuration
+	}
+	if err != nil {
+		logger.Error(err, "unable to update certificate status", "name", req.NamespacedName)
+
+		return result, err
+	}
+
+	if reconcileAfterDuration == reconcileNone {
+		logger.Info("channel reconcile complete", "name", req.NamespacedName)
+	}
 
 	return result, nil
 }
@@ -53,5 +72,10 @@ func (r *CertificateReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 func (r *CertificateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&certsv1.Certificate{}).
+		Owns(&corev1.Secret{}).
+		Watches(&corev1.Secret{},
+			&handler.EnqueueRequestForObject{},
+			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		).
 		Complete(r)
 }
