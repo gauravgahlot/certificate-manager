@@ -35,7 +35,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	ca, err := cert.Authority(nil)
+	ca, err := cert.Authority()
 	if err != nil {
 		setupLog.Error(err, "unable to initialize certificate authority")
 	}
