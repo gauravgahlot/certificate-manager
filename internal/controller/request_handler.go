@@ -36,8 +36,11 @@ func (rh requestHandler) updateStatusIfNeeded(
 		}
 
 		cert.Status.State = certsv1.StateValid
+		if err := rh.client.Status().Update(ctx, cert); err != nil {
+			return reconcileShortly, err
+		}
 
-		return reconcileShortly, rh.client.Status().Update(ctx, cert)
+		return reconcileNone, nil
 	}
 
 	// at this point we have a secret which may or maynot have valid credentials

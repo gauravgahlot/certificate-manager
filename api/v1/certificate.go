@@ -5,9 +5,8 @@ import (
 )
 
 const (
-	StateValid      State = "Valid"
-	StateExpired    State = "Expired"
-	StateInProgress State = "InProgress"
+	StateValid   State = "Valid"
+	StateExpired State = "Expired"
 )
 
 // CertificateSpec defines the desired state of the Certificate.
@@ -44,12 +43,16 @@ type State string
 // CertificateStatus defines the observed state of the certificate.
 type CertificateStatus struct {
 	// State of the Certificate.
-	// +kubebuilder:validation:Enum=Valid;Expired;InProgress
+	// +kubebuilder:validation:Enum=Valid;Expired
 	State State `json:"state"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:resource:shortName=cert;certs
+//+kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
+//+kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
+//+kubebuilder:printcolumn:name="Valid for Days",type=integer,JSONPath=`.spec.validForDays`
 
 // Certificate is the schema for the certs API.
 type Certificate struct {

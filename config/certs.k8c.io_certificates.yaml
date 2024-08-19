@@ -11,10 +11,23 @@ spec:
     kind: Certificate
     listKind: CertificateList
     plural: certificates
+    shortNames:
+    - cert
+    - certs
     singular: certificate
   scope: Namespaced
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - jsonPath: .status.state
+      name: State
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    - jsonPath: .spec.validForDays
+      name: Valid for Days
+      type: integer
+    name: v1
     schema:
       openAPIV3Schema:
         description: Certificate is the schema for the certs API.
@@ -82,7 +95,6 @@ spec:
                 enum:
                 - Valid
                 - Expired
-                - InProgress
                 type: string
             required:
             - state
