@@ -22,7 +22,7 @@ spec:
         runAsNonRoot: true
       containers:
       - name: manager
-        image: manager:v0.1.1
+        image: manager:v0.1.0
         resources:
           limits:
             cpu: 500m
