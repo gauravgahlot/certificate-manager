@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: todo
+
+---
+apiVersion: certs.k8c.io/v1
+kind: Certificate
+metadata:
+  name: todo-app
+  namespace: todo
+spec:
+  dnsName: todo-app.todo.svc.cluster.local
+  organization: k8c
+  altNames:
+  - localhost
+  - todo-app
+  secretRef:
+    name: todo-app
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-app
+  namespace: todo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: todo-app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: todo-app
+    spec:
+      containers:
+      - name: todo-app
+        image: todo-app:v0.1.0
+        ports:
+        - containerPort: 443
+        volumeMounts:
+        - name: certs
+          mountPath: "/tmp/certs"
+          readOnly: true
+      volumes:
+      - name: certs
+        secret:
+          secretName: todo-app
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-app
+  namespace: todo
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: todo-app
+  ports:
+    - protocol: TCP
+      port: 443
+      targetPort: 443

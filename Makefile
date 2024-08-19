@@ -8,57 +8,76 @@ help: ## Show this help screen.
 
 .PHONY: manifests
 manifests: controller-gen ## Generate ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) rbac:roleName=manager-role crd paths="./..." output:dir=config
+	@$(CONTROLLER_GEN) rbac:roleName=manager-role crd paths="./..." output:dir=config
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
-	$(CONTROLLER_GEN) object paths="./..."
+	@$(CONTROLLER_GEN) object paths="./..."
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
-	go fmt ./...
+	@go fmt ./...
 
 .PHONY: vet
 vet: ## Run go vet against code.
-	go vet ./...
+	@go vet ./...
 
 .PHONY: lint
 lint: golangci-lint ## Run golangci-lint linter & yamllint
-	$(GOLANGCI_LINT) run
+	@$(GOLANGCI_LINT) run
 
 .PHONY: lint-fix
 lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
-	$(GOLANGCI_LINT) run --fix
+	@$(GOLANGCI_LINT) run --fix
 
 ##@ Build
 
 .PHONY: build
 build: manifests generate fmt vet ## Build manager binary.
-	go build -o bin/manager cmd/main.go
+	@go build -o bin/manager cmd/main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./cmd/main.go
+	@go run ./cmd/main.go
 
 .PHONY: docker-build
-docker-build: ## Build docker image with the manager.
-	docker build -t ${IMG} .
+docker-build: ## Build docker image for certificate-manager and todo-app.
+	# build docker image for certificate-manager
+	@docker build -t manager:v0.1.0 .
+	
+	# build docker image for todo-app
+	@docker build -t todo-app:v0.1.0 ./todo-app
 
 .PHONY: docker-push
-docker-push: ## Push docker image with the manager.
-	# docker push ${IMG}
-	kind load docker-image ${IMG}
+docker-push: ## Push docker images.
+	@kind load docker-image manager:v0.1.0
+	@kind load docker-image todo-app:v0.1.0
 
 ##@ Deploy
 
 .PHONY: install
 install: manifests ## Install generated manifests (from config/) to the cluster.
-	kubectl apply -f config/
+	@for file in config/*.yaml; do \
+	    if [ "$$(basename $$file)" != "manager.yaml" ]; then \
+	        kubectl apply -f $$file; \
+	    fi \
+	done
+	@kubectl apply -f config/manager.yaml
 
 .PHONY: uninstall
 uninstall: ## Uninstall applied manifests from the cluster.
-	kubectl delete -f config/
+	@kubectl delete -f config/
 
+.PHONY: test-app
+test-app: ## Deploy the todo-app to the cluster.
+	@kubectl apply -f todo-app/deploy.yaml
+	@echo 'Sleeping for 10 seconds before executing the test script ...'
+	@sleep 10 && echo
+
+
+	@echo "Starting test ..."
+	@./test.sh
+	
 ##@ Dependencies
 
 ## Location to install dependencies to
