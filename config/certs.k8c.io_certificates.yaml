@@ -63,11 +63,6 @@ spec:
               organization:
                 description: Name of the organization.
                 type: string
-              renewBeforeDays:
-                description: The number of days the certificate should be renewed
-                  before it expires.
-                minimum: 7
-                type: integer
               secretRef:
                 description: A reference to the Secret object in which the certificate
                   is stored.

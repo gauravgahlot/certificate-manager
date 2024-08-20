@@ -70,7 +70,7 @@ func (ca certAuthority) certTemplate(req Request, isCA bool) (*x509.Certificate,
 		KeyUsage:              keyUsage,
 		BasicConstraintsValid: true,
 		IsCA:                  isCA,
-		DNSNames:              append(req.AltNames, req.DNSName),
+		DNSNames:              req.AltNames,
 	}
 
 	if req.ValidForDays <= 0 || isCA {

@@ -65,6 +65,24 @@ func (rh requestHandler) updateStatusIfNeeded(
 		return reconcileShortly, err
 	}
 
+	// check if desired state has shifted from the state in external world
+	var extCert certsv1.Certificate
+	err = getCertFromExternalWorld(&sec, &extCert)
+	if err != nil {
+		rh.logger.Error(err, "unable to get certificate from external world", "name", key.String())
+
+		return reconcileShortly, err
+	}
+
+	if certificateHasChanges(cert, &extCert) {
+		cert.Status.State = certsv1.StateExpired
+		if err := rh.client.Delete(ctx, &sec); err != nil {
+			return reconcileShortly, err
+		}
+
+		return reconcileShortly, rh.client.Status().Update(ctx, cert)
+	}
+
 	// check if the certificate has expired
 	expired, err := rh.hasCertificateExpired(sec)
 	if err != nil {

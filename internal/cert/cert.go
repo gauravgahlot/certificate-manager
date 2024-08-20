@@ -39,9 +39,9 @@ func newCertAuthority() (*certAuthority, error) {
 	return ca, nil
 }
 
-// CreateCert creates a new self-signed x509 certificate.
+// IssueCert creates a new self-signed x509 certificate.
 // Returns base64 encoded key and certificate; error otherwise.
-func (ca certAuthority) CreateCert(req Request) ([]byte, []byte, error) {
+func (ca certAuthority) IssueCert(req Request) ([]byte, []byte, error) {
 	// generate an RSA key-pair
 	key, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
 	if err != nil {
@@ -67,12 +67,6 @@ func (ca certAuthority) CreateCert(req Request) ([]byte, []byte, error) {
 	}
 
 	return encodedKey, encodedCert, nil
-}
-
-// RenewCert renews an existing x509 certificate.
-// Returns base64 encoded key and certificate; error otherwise.
-func (ca certAuthority) RenewCert(req RenewRequest) ([]byte, []byte, error) {
-	return nil, nil, nil
 }
 
 // HasCertificateExpired checks whether given base64 encoded

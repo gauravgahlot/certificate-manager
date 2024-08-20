@@ -12,6 +12,7 @@ metadata:
 spec:
   dnsName: todo-app.todo.svc.cluster.local
   organization: k8c
+  validForDays: 90
   altNames:
   - localhost
   - todo-app

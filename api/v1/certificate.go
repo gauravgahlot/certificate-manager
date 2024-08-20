@@ -22,11 +22,6 @@ type CertificateSpec struct {
 	// +kubebuilder:default=365
 	ValidForDays int `json:"validForDays,omitempty"`
 
-	// The number of days the certificate should be renewed before it expires.
-	// +kubebuilder:validation:Minimum=7
-	// +kubebuilder:default:15
-	RenewBeforeDays int `json:"renewBeforeDays,omitempty"`
-
 	// Subject alternate names, other than DNSName.
 	AltNames []string `json:"altNames,omitempty"`
 
