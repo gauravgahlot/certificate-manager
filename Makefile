@@ -1,3 +1,5 @@
+PACKAGE=$(shell go mod graph | head -n 1 | cut -d" " -f1)
+
 ##@ General
 .DEFAULT_GOAL := help
 .PHONY: help
@@ -30,6 +32,17 @@ lint: golangci-lint ## Run golangci-lint linter & yamllint
 lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 	@$(GOLANGCI_LINT) run --fix
 
+.PHONY: mocks
+mocks: ## Build the mock files for CertAuthority.
+	mockgen \
+		-destination=internal/cert/mocks/ca.go \
+		-package=mocks \
+		$(PACKAGE)/internal/cert CertAuthority 
+
+.PHONY: e2e
+e2e: manifests generate fmt vet envtest ## Run e2e tests.
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" CGO_ENABLED=1 go test ./... -tags=e2e -covermode=count -coverprofile=coverage.e2e.out -v -ginkgo.v $(TEST_ARGS)
+
 ##@ Build
 
 .PHONY: build
@@ -44,7 +57,7 @@ run: manifests generate fmt vet ## Run a controller from your host.
 docker-build: ## Build docker image for certificate-manager and todo-app.
 	# build docker image for certificate-manager
 	@docker build -t manager:v0.1.0 .
-	
+
 	# build docker image for todo-app
 	@docker build -t todo-app:v0.1.0 ./todo-app
 
@@ -56,7 +69,7 @@ docker-push: ## Push docker images.
 ##@ Deploy
 
 .PHONY: install
-install: manifests ## Install generated manifests (from config/) to the cluster.
+install: manifests ## Install the manifests (from config/) to the cluster.
 	@for file in config/*.yaml; do \
 	    if [ "$$(basename $$file)" != "manager.yaml" ]; then \
 	        kubectl apply -f $$file; \
@@ -73,8 +86,6 @@ test-app: ## Deploy the todo-app to the cluster.
 	@kubectl apply -f todo-app/deploy.yaml
 	@echo 'Sleeping for 10 seconds before executing the test script ...'
 	@sleep 10 && echo
-
-
 	@echo "Starting test ..."
 	@./test.sh
 	
@@ -87,11 +98,13 @@ $(LOCALBIN):
 
 ## Tool Binaries
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen-$(CONTROLLER_TOOLS_VERSION)
-GOLANGCI_LINT = $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
+GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
+ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
 CONTROLLER_TOOLS_VERSION ?= v0.14.0
 GOLANGCI_LINT_VERSION ?= v1.59.1
+ENVTEST_K8S_VERSION = 1.29.0
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
@@ -102,6 +115,11 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
 $(GOLANGCI_LINT): $(LOCALBIN)
 	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/cmd/golangci-lint,${GOLANGCI_LINT_VERSION})
+
+.PHONY: envtest
+envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
+$(ENVTEST): $(LOCALBIN)
+	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
 # $1 - target path with name of binary (ideally with version)
